@@ -9,6 +9,7 @@ import numpy as np
 from copy import deepcopy
 from collections import defaultdict
 from random import shuffle
+import random
 
 def _edge_list_1(kg, n_entity, hop):
     edge_list = []
