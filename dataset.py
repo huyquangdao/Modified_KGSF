@@ -7,6 +7,7 @@ import re
 from torch.utils.data.dataset import Dataset
 import numpy as np
 from copy import deepcopy
+from collections import defaultdict
 
 def _edge_list_1(kg, n_entity, hop):
     edge_list = []
