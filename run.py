@@ -179,8 +179,8 @@ class TrainLoop_fusion_rec():
 
         print("masked loss pre-trained")
         losses=[]
-
-        for i in range(3):
+        iterations = 0
+        for i in range(2):
             train_set=CRSdataset(self.train_dataset.data_process(),self.opt['n_entity'],self.opt['n_concept'])
             train_dataset_loader = torch.utils.data.DataLoader(dataset=train_set,
                                                             batch_size=self.batch_size,
@@ -188,6 +188,7 @@ class TrainLoop_fusion_rec():
             num=0
             for context,c_lengths,response,r_length,mask_response,mask_r_length,entity,entity_vector,movie,concept_mask,dbpedia_mask,concept_vec, db_vec,rec in tqdm(train_dataset_loader):
                 seed_sets = []
+                iterations += 1
                 batch_size = context.shape[0]
                 for b in range(batch_size):
                     seed_set = entity[b].nonzero().view(-1).tolist()
@@ -206,6 +207,10 @@ class TrainLoop_fusion_rec():
                     print('rec loss is %f'%(sum([l[0] for l in losses])/len(losses)))
                     print('info db loss is %f'%(sum([l[1] for l in losses])/len(losses)))
                     losses=[]
+                if iterations%400==0:
+                    print(f'Evaluate model on test set at {iterations} step....')
+                    output_metrics_rec = self.val(is_test=True)
+                    Recall_logs[iterations] = output_metrics_rec
                 num+=1
 
             output_metrics_rec = self.val()
