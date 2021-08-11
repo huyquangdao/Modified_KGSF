@@ -180,7 +180,7 @@ class TrainLoop_fusion_rec():
         print("masked loss pre-trained")
         losses=[]
 
-        for i in range(self.epoch):
+        for i in range(3):
             train_set=CRSdataset(self.train_dataset.data_process(),self.opt['n_entity'],self.opt['n_concept'])
             train_dataset_loader = torch.utils.data.DataLoader(dataset=train_set,
                                                             batch_size=self.batch_size,
