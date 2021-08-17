@@ -92,6 +92,8 @@ def setup_args():
     train.add_argument("-item_update_mode","--item_update_mode",type=str,default='0,1')
     train.add_argument("-using_all_hops","--using_all_hops",type=bool,default=True)
     train.add_argument("-num_bases", "--num_bases", type=int, default=8)
+    train.add_argument("-max_neighbors", "--max_neighbors", type=int, default=10)
+
 
     return train
 

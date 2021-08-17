@@ -64,6 +64,7 @@ class dataset(object):
         self.max_r_length=opt['max_r_length']
         self.max_count=opt['max_count']
         self.entity_num=opt['n_entity']
+        self.max_neighbors=opt['max_neighbors']
         #self.word2index=json.load(open('word2index.json',encoding='utf-8'))
 
         f=open(filename,encoding='utf-8')
@@ -89,6 +90,9 @@ class dataset(object):
         self.stopwords=set([word.strip() for word in open('stopwords.txt',encoding='utf-8')])
 
         self.edge_list, self.relation_counts = _edge_list_1(self.subkg, 64368, hop=2)
+
+        if self.max_neighbors > 0:
+            print(f'use neighborhood incoporation ..... num neighbors: {self.max_neighbors}')
 
         #self.co_occurance_ext(self.data)
         #exit()
@@ -198,10 +202,9 @@ class dataset(object):
             assert len(dbpedia_mask)==self.max_c_length
 
             #neighborhood intercoporation
-
             neighbors = []
             for id in line['entity']:
-                one_hops_neighbors, two_hops_neighbors = get_2_hops_neighbors_via_kg(self.subkg, id ,self.relation_counts, max_neighbors = 10)
+                one_hops_neighbors, two_hops_neighbors = get_2_hops_neighbors_via_kg(self.subkg, id ,self.relation_counts, max_neighbors = self.max_neighbors)
                 neighbors.extend(one_hops_neighbors)
             final_entity = line['entity'] + neighbors    
 
