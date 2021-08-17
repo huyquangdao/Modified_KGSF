@@ -18,6 +18,7 @@ def kaiming_reset_parameters(linear_module):
         bound = 1 / math.sqrt(fan_in)
         nn.init.uniform_(linear_module.bias, -bound, bound)
 
+
 class GraphConvolution(nn.Module):
     """
     Simple GCN layer, similar to https://arxiv.org/abs/1609.02907
@@ -31,7 +32,7 @@ class GraphConvolution(nn.Module):
         if bias:
             self.bias = nn.Parameter(torch.FloatTensor(out_features))
         else:
-            self.register_parameter('bias', None)
+            self.register_parameter("bias", None)
         self.reset_parameters()
 
     def reset_parameters(self):
@@ -51,9 +52,15 @@ class GraphConvolution(nn.Module):
             return output
 
     def __repr__(self):
-        return self.__class__.__name__ + ' (' \
-               + str(self.in_features) + ' -> ' \
-               + str(self.out_features) + ')'
+        return (
+            self.__class__.__name__
+            + " ("
+            + str(self.in_features)
+            + " -> "
+            + str(self.out_features)
+            + ")"
+        )
+
 
 class GCN(nn.Module):
     def __init__(self, ninp, nhid, dropout=0.5):
@@ -71,6 +78,7 @@ class GCN(nn.Module):
         return x
         # return F.log_softmax(x, dim=1)
 
+
 class GraphAttentionLayer(nn.Module):
     """
     Simple GAT layer, similar to https://arxiv.org/abs/1710.10903
@@ -86,7 +94,7 @@ class GraphAttentionLayer(nn.Module):
 
         self.W = nn.Parameter(torch.zeros(size=(in_features, out_features)))
         nn.init.xavier_uniform_(self.W.data, gain=1.414)
-        self.a = nn.Parameter(torch.zeros(size=(2*out_features, 1)))
+        self.a = nn.Parameter(torch.zeros(size=(2 * out_features, 1)))
         nn.init.xavier_uniform_(self.a.data, gain=1.414)
 
         self.leakyrelu = nn.LeakyReLU(self.alpha)
@@ -95,10 +103,12 @@ class GraphAttentionLayer(nn.Module):
         h = torch.mm(input, self.W)
         N = h.size()[0]
 
-        a_input = torch.cat([h.repeat(1, N).view(N * N, -1), h.repeat(N, 1)], dim=1).view(N, -1, 2 * self.out_features)
+        a_input = torch.cat(
+            [h.repeat(1, N).view(N * N, -1), h.repeat(N, 1)], dim=1
+        ).view(N, -1, 2 * self.out_features)
         e = self.leakyrelu(torch.matmul(a_input, self.a).squeeze(2))
 
-        zero_vec = -9e15*torch.ones_like(e)
+        zero_vec = -9e15 * torch.ones_like(e)
         attention = torch.where(adj > 0, e, zero_vec)
         attention = F.softmax(attention, dim=1)
         attention = F.dropout(attention, self.dropout, training=self.training)
@@ -110,7 +120,15 @@ class GraphAttentionLayer(nn.Module):
             return h_prime
 
     def __repr__(self):
-        return self.__class__.__name__ + ' (' + str(self.in_features) + ' -> ' + str(self.out_features) + ')'
+        return (
+            self.__class__.__name__
+            + " ("
+            + str(self.in_features)
+            + " -> "
+            + str(self.out_features)
+            + ")"
+        )
+
 
 class SelfAttentionLayer(nn.Module):
     def __init__(self, dim, da, alpha=0.2, dropout=0.5):
@@ -138,6 +156,7 @@ class SelfAttentionLayer(nn.Module):
         # attention = F.dropout(attention, self.dropout, training=self.training)
         return torch.matmul(attention, h)
 
+
 class SelfAttentionLayer_batch(nn.Module):
     def __init__(self, dim, da, alpha=0.2, dropout=0.5):
         super(SelfAttentionLayer_batch, self).__init__()
@@ -159,14 +178,15 @@ class SelfAttentionLayer_batch(nn.Module):
         # a_input = torch.cat([h.repeat(1, N).view(N * N, -1), h.repeat(N, 1)], dim=1).view(N, -1, 2 * self.dim)
         # e = self.leakyrelu(torch.matmul(a_input, self.a).squeeze(2))
         # attention = F.softmax(e, dim=1)
-        mask=1e-30*mask.float()
+        mask = 1e-30 * mask.float()
 
         e = torch.matmul(torch.tanh(torch.matmul(h, self.a)), self.b)
-        #print(e.size())
-        #print(mask.size())
-        attention = F.softmax(e+mask.unsqueeze(-1),dim=1)
+        # print(e.size())
+        # print(mask.size())
+        attention = F.softmax(e + mask.unsqueeze(-1), dim=1)
         # attention = F.dropout(attention, self.dropout, training=self.training)
-        return torch.matmul(torch.transpose(attention,1,2), h).squeeze(1),attention
+        return torch.matmul(torch.transpose(attention, 1, 2), h).squeeze(1), attention
+
 
 class SelfAttentionLayer2(nn.Module):
     def __init__(self, dim, da):
@@ -189,6 +209,7 @@ class SelfAttentionLayer2(nn.Module):
         x = torch.matmul(attention, h)
         return x
 
+
 class BiAttention(nn.Module):
     def __init__(self, input_size, dropout):
         super().__init__()
@@ -196,7 +217,9 @@ class BiAttention(nn.Module):
         self.input_linear = nn.Linear(input_size, 1, bias=False)
         self.memory_linear = nn.Linear(input_size, 1, bias=False)
 
-        self.dot_scale = nn.Parameter(torch.Tensor(input_size).uniform_(1.0 / (input_size ** 0.5)))
+        self.dot_scale = nn.Parameter(
+            torch.Tensor(input_size).uniform_(1.0 / (input_size ** 0.5))
+        )
 
         def forward(self, input, memory, mask=None):
             bsz, input_len, memory_len = input.size(0), input.size(1), memory.size(1)
@@ -206,16 +229,23 @@ class BiAttention(nn.Module):
 
             input_dot = self.input_linear(input)
             memory_dot = self.memory_linear(memory).view(bsz, 1, memory_len)
-            cross_dot = torch.bmm(input * self.dot_scale, memory.permute(0, 2, 1).contiguous())
+            cross_dot = torch.bmm(
+                input * self.dot_scale, memory.permute(0, 2, 1).contiguous()
+            )
             att = input_dot + memory_dot + cross_dot
             if mask is not None:
-                att = att - 1e30 * (1 - mask[:,None])
+                att = att - 1e30 * (1 - mask[:, None])
 
                 weight_one = F.softmax(att, dim=-1)
                 output_one = torch.bmm(weight_one, memory)
-                weight_two = F.softmax(att.max(dim=-1)[0], dim=-1).view(bsz, 1, input_len)
+                weight_two = F.softmax(att.max(dim=-1)[0], dim=-1).view(
+                    bsz, 1, input_len
+                )
                 output_two = torch.bmm(weight_two, input)
-            return torch.cat([input, output_one, input*output_one, output_two*output_one], dim=-1)
+            return torch.cat(
+                [input, output_one, input * output_one, output_two * output_one], dim=-1
+            )
+
 
 class GAT(nn.Module):
     def __init__(self, nfeat, nhid, nclass, dropout, alpha, nheads):
@@ -223,11 +253,16 @@ class GAT(nn.Module):
         super(GAT, self).__init__()
         self.dropout = dropout
 
-        self.attentions = [GraphAttentionLayer(nfeat, nhid, dropout=dropout, alpha=alpha, concat=True) for _ in range(nheads)]
+        self.attentions = [
+            GraphAttentionLayer(nfeat, nhid, dropout=dropout, alpha=alpha, concat=True)
+            for _ in range(nheads)
+        ]
         for i, attention in enumerate(self.attentions):
-            self.add_module('attention_{}'.format(i), attention)
+            self.add_module("attention_{}".format(i), attention)
 
-        self.out_att = GraphAttentionLayer(nhid * nheads, nclass, dropout=dropout, alpha=alpha, concat=False)
+        self.out_att = GraphAttentionLayer(
+            nhid * nheads, nclass, dropout=dropout, alpha=alpha, concat=False
+        )
 
     def forward(self, x, adj):
         x = F.dropout(x, self.dropout, training=self.training)
@@ -236,8 +271,10 @@ class GAT(nn.Module):
         x = F.elu(self.out_att(x, adj))
         return F.log_softmax(x, dim=1)
 
+
 class SpecialSpmmFunction(torch.autograd.Function):
     """Special function for only sparse region backpropataion layer."""
+
     @staticmethod
     def forward(ctx, indices, values, shape, b):
         assert indices.requires_grad == False
@@ -258,9 +295,11 @@ class SpecialSpmmFunction(torch.autograd.Function):
             grad_b = a.t().matmul(grad_output)
         return None, grad_values, None, grad_b
 
+
 class SpecialSpmm(nn.Module):
     def forward(self, indices, values, shape, b):
         return SpecialSpmmFunction.apply(indices, values, shape, b)
+
 
 class SpGraphAttentionLayer(nn.Module):
     """
@@ -303,7 +342,9 @@ class SpGraphAttentionLayer(nn.Module):
         assert not torch.isnan(edge_e).any()
         # edge_e: E
 
-        e_rowsum = self.special_spmm(edge, edge_e, torch.Size([N, N]), torch.ones(size=(N,1)).cuda())
+        e_rowsum = self.special_spmm(
+            edge, edge_e, torch.Size([N, N]), torch.ones(size=(N, 1)).cuda()
+        )
         # e_rowsum: N x 1
 
         # edge_e = self.dropout(edge_e)
@@ -325,7 +366,15 @@ class SpGraphAttentionLayer(nn.Module):
             return h_prime
 
     def __repr__(self):
-        return self.__class__.__name__ + ' (' + str(self.in_features) + ' -> ' + str(self.out_features) + ')'
+        return (
+            self.__class__.__name__
+            + " ("
+            + str(self.in_features)
+            + " -> "
+            + str(self.out_features)
+            + ")"
+        )
+
 
 class SpGAT(nn.Module):
     def __init__(self, nfeat, nhid, nclass, dropout, alpha, nheads):
@@ -346,11 +395,9 @@ class SpGAT(nn.Module):
         #                                      dropout=dropout,
         #                                      alpha=alpha,
         #                                      concat=False)
-        self.out_att = SpGraphAttentionLayer(nhid,
-                                             nclass,
-                                             dropout=dropout,
-                                             alpha=alpha,
-                                             concat=False)
+        self.out_att = SpGraphAttentionLayer(
+            nhid, nclass, dropout=dropout, alpha=alpha, concat=False
+        )
 
     def forward(self, x, adj):
         # x = F.dropout(x, self.dropout, training=self.training)
@@ -360,6 +407,7 @@ class SpGAT(nn.Module):
         x = self.out_att(x, adj)
         return x
         # return F.log_softmax(x, dim=1)
+
 
 def _add_neighbors(kg, g, seed_set, hop):
     tails_of_last_hop = seed_set
@@ -374,6 +422,5 @@ def _add_neighbors(kg, g, seed_set, hop):
                     next_tails_of_last_hop.append(tail_and_relation[1])
         tails_of_last_hop = next_tails_of_last_hop
 
+
 # http://dbpedia.org/ontology/director
-
-
