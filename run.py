@@ -127,7 +127,7 @@ def setup_args():
     train.add_argument("-num_bases", "--num_bases", type=int, default=8)
     train.add_argument("-max_neighbors", "--max_neighbors", type=int, default=10)
 
-    train.add_argument("-train_mim", "--train_mim", type=bool, default=True)
+    train.add_argument("-train_mim", "--train_mim", type=int, default=1)
 
     return train
 
