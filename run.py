@@ -356,7 +356,11 @@ class TrainLoop_fusion_rec:
                 if iterations % 400 == 0:
                     print(f"Evaluate model on test set at {iterations} step....")
                     output_metrics_rec = self.val(is_test=True)
-                    self.logs[iterations] = output_metrics_rec
+                    self.logs[iterations] = {
+                        "recall1": output_metrics_rec["recall1"],
+                        "recall10": output_metrics_rec["recall10"],
+                        "recall50": output_metrics_rec["recall50"],
+                    }
                 num += 1
 
             output_metrics_rec = self.val()
