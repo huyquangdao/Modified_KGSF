@@ -77,7 +77,7 @@ def get_2_hops_neighbors_via_kg(
             if t[1] != entity_id and relation_counts[int(t[0])] > 1000
         ]
     elif type_sampling == "degree":
-        one_hops_neighbors = [(x, node_degree[x]) for x in one_hops_neighbors]
+        one_hops_neighbors = [(x, node_degree[x]) if node_degree[x] > 0 else (x, 0) for x in one_hops_neighbors]
         sorted(one_hops_neighbors, key=lambda x: x[1], reverse=True)
         one_hops_neighbors = [x[0] for x in one_hops_neighbors]
     return one_hops_neighbors[:max_neighbors], two_hops_neighbors[:max_neighbors]
@@ -129,10 +129,6 @@ class dataset(object):
         self.edge_list, self.relation_counts = _edge_list_1(self.subkg, 64368, hop=2)
 
         self.node_degree = {k: len(v) for k, v in self.subkg.items()}
-
-        print(self.node_degree)
-
-        assert 1==0
 
         self.type_sampling = opt["type_sampling"]
 
