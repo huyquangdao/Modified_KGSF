@@ -129,6 +129,11 @@ class dataset(object):
         self.edge_list, self.relation_counts = _edge_list_1(self.subkg, 64368, hop=2)
 
         self.node_degree = {k: len(v) for k, v in self.subkg.items()}
+
+        print(self.node_degree)
+
+        assert 1==0
+
         self.type_sampling = opt["type_sampling"]
 
         if self.max_neighbors > 0:
