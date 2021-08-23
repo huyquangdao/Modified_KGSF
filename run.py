@@ -128,7 +128,10 @@ def setup_args():
     train.add_argument("-max_neighbors", "--max_neighbors", type=int, default=10)
 
     train.add_argument("-train_mim", "--train_mim", type=int, default=1)
-    train.add_argument("-info_loss_ratio", "--info_loss_ratio", type=float, default=0.025)
+    train.add_argument(
+        "-info_loss_ratio", "--info_loss_ratio", type=float, default=0.025
+    )
+    train.add_argument("-type_sampling", "--type_sampling", type=str, default="random")
 
     return train
 
@@ -148,7 +151,7 @@ class TrainLoop_fusion_rec:
         self.logs = {}
 
         self.train_MIM = self.opt["train_mim"]
-        self.info_loss_ratio = self.opt['info_loss_ratio']
+        self.info_loss_ratio = self.opt["info_loss_ratio"]
 
         self.use_cuda = opt["use_cuda"]
         if opt["load_dict"] != None:

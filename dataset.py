@@ -51,7 +51,14 @@ def get_neighborhood(edge_list, entity_id, max_neighbors=30):
     return neighbors[:max_neighbors]
 
 
-def get_2_hops_neighbors_via_kg(kg, entity_id, relation_counts, max_neighbors=5):
+def get_2_hops_neighbors_via_kg(
+    kg,
+    entity_id,
+    relation_counts,
+    max_neighbors=5,
+    type_sampling="random",
+    node_degree=None,
+):
     #     one_hops_neighbors = [t[1] for t in kg[entity_id] if t[1] != entity_id and relation_counts[int(t[0])] > 1000]
     one_hops_neighbors = [t[1] for t in kg[entity_id] if t[1] != entity_id]
     two_hops_neighbors = [
@@ -60,7 +67,19 @@ def get_2_hops_neighbors_via_kg(kg, entity_id, relation_counts, max_neighbors=5)
         for t in kg[n_id]
         if t[1] != entity_id and relation_counts[t[0]] > 1000
     ]
-    random.shuffle(one_hops_neighbors)
+
+    if type_sampling == "random":
+        random.shuffle(one_hops_neighbors)
+    elif type_sampling == "relation":
+        one_hops_neighbors = [
+            t[1]
+            for t in kg[entity_id]
+            if t[1] != entity_id and relation_counts[int(t[0])] > 1000
+        ]
+    elif type_sampling == "degree":
+        one_hops_neighbors = [(x, node_degree[x]) for x in one_hops_neighbors]
+        sorted(one_hops_neighbors, key=lambda x: x[1], reverse=True)
+        one_hops_neighbors = [x[0] for x in one_hops_neighbors]
     return one_hops_neighbors[:max_neighbors], two_hops_neighbors[:max_neighbors]
 
 
@@ -108,6 +127,9 @@ class dataset(object):
         )
 
         self.edge_list, self.relation_counts = _edge_list_1(self.subkg, 64368, hop=2)
+
+        self.node_degree = {k: len(v) for k, v in self.subkg}
+        self.type_sampling = self.opt["type_sampling"]
 
         if self.max_neighbors > 0:
             print(
@@ -262,6 +284,8 @@ class dataset(object):
                     id,
                     self.relation_counts,
                     max_neighbors=self.max_neighbors,
+                    type_sampling=self.type_sampling,
+                    node_degree=self.node_degree,
                 )
                 neighbors.extend(one_hops_neighbors)
             final_entity = line["entity"] + neighbors
