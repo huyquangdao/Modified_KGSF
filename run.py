@@ -147,7 +147,7 @@ class TrainLoop_fusion_rec:
         self.batch_size = self.opt["batch_size"]
         self.epoch = self.opt["epoch"]
 
-        self.log_file_name = f"logs/log_for_{opt['max_neighbors']}_neighbors.json"
+        self.log_file_name = f"logs/log_for_{opt['type_sampling']}_{opt['max_neighbors']}_neighbors.json"
         self.logs = {}
 
         self.train_MIM = self.opt["train_mim"]
