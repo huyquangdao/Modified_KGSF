@@ -85,7 +85,7 @@ def concept_edge_list4GCN():
         edges.add((entity0, entity1))
         edges.add((entity1, entity0))
     edge_set = [[co[0] for co in list(edges)], [co[1] for co in list(edges)]]
-    return torch.LongTensor(edge_set).cuda()
+    return torch.LongTensor(edge_set).cuda() 
 
 
 class CrossModel(nn.Module):
